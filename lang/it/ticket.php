@@ -7,6 +7,7 @@
     array (
       'name' => 'Management',
     ),
+    'label' => 'ticket.navigation',
   ),
   'fields' => 
   array (
@@ -5828,4 +5829,15 @@ Puoi collegarti per verificare il tuo via OTP o semplicamente cliccare sul link 
   ),
   'your-location' => 'La tua posizione',
   'insert-images' => 'Carica immagini',
+  'model' => 
+  array (
+    'label' => 'ticket.model',
+  ),
+  'plural' => 
+  array (
+    'model' => 
+    array (
+      'label' => 'ticket.plural.model',
+    ),
+  ),
 );
