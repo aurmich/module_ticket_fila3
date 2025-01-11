@@ -12,6 +12,7 @@ use Filament\Facades\Filament;
 use Filament\Forms;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Textarea;
 use Filament\Forms\Form;
 use Filament\Forms\Get;
 use Filament\Forms\Set;
@@ -41,7 +42,8 @@ class TicketResource extends XotBaseResource
                 ->schema([
                     // Ticket Name
                     TextInput::make('name')
-                        ->label(__('ticket::ticket.title.label'))
+                        ->hiddenLabel()
+                        ->placeholder(__('ticket::ticket.title.placeholder') . '*')
                         ->columnSpanFull() // Occupa tutta la larghezza disponibile
                         ->required()
                         ->maxLength(255)
@@ -51,7 +53,9 @@ class TicketResource extends XotBaseResource
                             }
                             $set('slug', Str::slug($state));
                         })
-                        ->extraAttributes(['class' => 'max-w-full', 'style' => 'padding: 0; margin: 0;']), // Rimozione del padding e margini
+                        ->extraAttributes([
+                            'style' => ''
+                        ]),
 
                     // Slug
                     TextInput::make('slug')
@@ -62,7 +66,8 @@ class TicketResource extends XotBaseResource
 
                     // Ticket Type
                     Forms\Components\Select::make('type')
-                        ->label(__('ticket::ticket.type.label'))
+                        ->hiddenLabel()
+                        ->placeholder(__('ticket::ticket.type.placeholder'). '*')
                         ->searchable()
                         ->options(TicketTypeEnum::class)
                         ->columnSpanFull()
@@ -70,7 +75,8 @@ class TicketResource extends XotBaseResource
 
                     // Ticket Priority
                     Forms\Components\Select::make('priority')
-                        ->label(__('ticket::ticket.priorities.label'))
+                        ->hiddenLabel()
+                        ->placeholder(__('ticket::ticket.priorities.label'))
                         ->searchable()
                         ->options(TicketPriorityEnum::class)
                         ->default(TicketPriorityEnum::default())
@@ -78,11 +84,17 @@ class TicketResource extends XotBaseResource
                         ->extraAttributes(['class' => 'max-w-full', 'style' => 'padding: 0; margin: 0;']), // Rimozione del padding e margini
 
                     // Ticket Content (RichEditor)
-                    Forms\Components\RichEditor::make('content')
-                        ->label(__('ticket::ticket.content.label'))
-                        ->required()
-                        ->columnSpanFull()
-                        ->extraAttributes(['class' => 'max-w-full', 'style' => 'padding: 0; margin: 0;']), // Rimozione del padding e margini
+                    // Forms\Components\RichEditor::make('content')
+                    //     ->label(__('ticket::ticket.content.label'))
+                    //     ->required()
+                    //     ->columnSpanFull()
+                    //     ->extraAttributes(['class' => 'max-w-full', 'style' => 'padding: 0; margin: 0;']), // Rimozione del padding e margini
+                    Textarea::make('content')
+                        ->hiddenLabel()
+                        ->placeholder(__('ticket::ticket.content.placeholder') . '**')
+                        ->rows(2)
+                        ->cols(10)
+                        ->helperText(__('ticket::ticket.content.helper_text')),
 
                     // Hidden Latitude and Longitude
                     TextInput::make('latitude')
@@ -146,7 +158,8 @@ class TicketResource extends XotBaseResource
                         ->multiple()
                         ->required()
                         ->columnSpanFull()
-                        ->extraAttributes(['class' => 'max-w-full', 'style' => 'padding: 0; margin: 0;']),
+                        ->extraAttributes(['class' => 'max-w-full', 'style' => 'padding: 0; margin: 0;'])
+                        ->helperText(__('ticket::ticket.images-helper-text')),
                 ])
                 ->columns(1) // Imposta il layout su una colonna
                 ->extraAttributes(['class' => 'w-full max-w-full mx-auto', 'style' => 'padding: 0; margin: 0; !important;']), // Rimozione padding e margine

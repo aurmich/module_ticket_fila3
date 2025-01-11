@@ -1,4 +1,5 @@
-<?php return array (
+<?php 
+return array (
   'navigation' => 
   array (
     'name' => 'Ticket',
@@ -74,6 +75,10 @@
     'changeStatus' => 
     array (
       'label' => 'changeStatus',
+    ),
+    'title' => 
+    array (
+      'label' => 'title',
     ),
   ),
   'actions' => 
@@ -1965,7 +1970,7 @@
   'type' => 
   array (
     'label' => 'Tipo',
-    'placeholder' => 'Tipo',
+    'placeholder' => 'Tipo di diservizio',
   ),
   'priority' => 
   array (
@@ -4424,7 +4429,8 @@
   'content' => 
   array (
     'label' => 'Contenuto',
-    'placeholder' => 'Contenuto',
+    'placeholder' => 'Dettagli',
+    'helper_text' => 'Inserire al massimo 200 caratteri'
   ),
   'edit_status' => 
   array (
@@ -5828,7 +5834,8 @@ Puoi collegarti per verificare il tuo via OTP o semplicamente cliccare sul link 
     'placeholder' => 'L\'utente selezionato è già il proprietario del ticket.',
   ),
   'your-location' => 'La tua posizione',
-  'insert-images' => 'Carica immagini',
+  'insert-images' => 'Immagini',
+  'images-helper-text' => 'Seleziona una o più immagini da allegare alla segnalazione',
   'model' => 
   array (
     'label' => 'ticket.model',
@@ -5840,4 +5847,4 @@ Puoi collegarti per verificare il tuo via OTP o semplicamente cliccare sul link 
       'label' => 'ticket.plural.model',
     ),
   ),
-);
+);
