@@ -21,6 +21,7 @@ enum TicketStatusEnum: string implements HasColor, HasIcon, HasLabel
     case RESOLVED = 'resolved';
     case CLOSED = 'closed';
     case REOPENED = 'reopened';
+    case OPEN = 'open';
 
     public function getColor(): string
     {
@@ -33,6 +34,7 @@ enum TicketStatusEnum: string implements HasColor, HasIcon, HasLabel
             self::RESOLVED => 'green',
             self::CLOSED => 'gray',
             self::REOPENED => 'pink',
+            self::OPEN => 'warning',
         };
     }
 
@@ -48,6 +50,7 @@ enum TicketStatusEnum: string implements HasColor, HasIcon, HasLabel
             self::RESOLVED => 'heroicon-o-check-circle',
             self::CLOSED => 'heroicon-o-x-circle',
             self::REOPENED => 'heroicon-o-arrow-uturn-left',
+            self::OPEN => 'heroicon-o-exclamation-circle',
         };
     }
 
@@ -64,7 +67,36 @@ enum TicketStatusEnum: string implements HasColor, HasIcon, HasLabel
             self::RESOLVED => 'Resolved',
             self::CLOSED => 'Closed',
             self::REOPENED => 'Reopened',
+            self::OPEN => 'Open',
             // default => 'Unknown',
+        };
+    }
+
+    public function getColorClass(): string
+    {
+        return match($this) {
+            self::PENDING => 'badge-warning',
+            self::IN_REVIEW => 'badge-info',
+            self::IN_PROGRESS => 'badge-info',
+            self::ON_HOLD => 'badge-danger',
+            self::RESOLVED => 'badge-success',
+            self::CLOSED => 'badge-secondary',
+            self::REOPENED => 'badge-secondary',
+            self::OPEN => 'badge-warning',
+        };
+    }
+
+    public function label(): string
+    {
+        return match($this) {
+            self::PENDING => trans('fixcity::ticket.fields.status.options.pending'),
+            self::IN_REVIEW => trans('fixcity::ticket.fields.status.options.in_review'),
+            self::IN_PROGRESS => trans('fixcity::ticket.fields.status.options.in_progress'),
+            self::ON_HOLD => trans('fixcity::ticket.fields.status.options.on_hold'),
+            self::RESOLVED => trans('fixcity::ticket.fields.status.options.resolved'),
+            self::CLOSED => trans('fixcity::ticket.fields.status.options.closed'),
+            self::REOPENED => trans('fixcity::ticket.fields.status.options.reopened'),
+            self::OPEN => trans('fixcity::ticket.fields.status.options.open'),
         };
     }
 
@@ -85,6 +117,11 @@ enum TicketStatusEnum: string implements HasColor, HasIcon, HasLabel
             self::IN_REVIEW,
             self::IN_PROGRESS,
         ];
+    }
+
+    public static function default(): static
+    {
+        return self::OPEN;
     }
 
     /*-- NO

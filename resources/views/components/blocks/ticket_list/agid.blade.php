@@ -1,17 +1,38 @@
-@php
-$categories = ["Acqua, allagamenti, problemi fognari (21)",
-"Ambiente, inquinamento, protezione ambientale (14)",
-"Arredo urbano (7)",
-"Disinfestazione, derattizazione, animali randagi (208)",
-"Igiene urbana, rifiuti, pulizia e decoro (321)",
-"Manutenzione immobili, edifici pubblici, scuole, barriere architettoniche, cimiteri (302)",
-"Ordine pubblico, disturbo della quiete (302)",
-"Parchi e verde pubblico (302)",
-"Servizi del comune (302)",
-"Sicurezza, degrado urbano e sociale (302)",
-"Strade, marciapiedi, segnaletica e viabilità (302)"];
-@endphp
+<?php
 
+use Livewire\Volt\Component;
+use Livewire\WithPagination;
+
+new class extends Component
+{
+    use WithPagination;
+
+    public $search = '';
+    public $selectedCategory = '';
+    public $selectedStatus = '';
+
+    public function with(): array
+    {
+        return [
+            'categories' => [
+                "Acqua, allagamenti, problemi fognari (22)",
+                "Ambiente, inquinamento, protezione ambientale (14)",
+                "Arredo urbano (7)",
+                "Disinfestazione, derattizazione, animali randagi (208)",
+                "Igiene urbana, rifiuti, pulizia e decoro (321)",
+                "Manutenzione immobili, edifici pubblici, scuole, barriere architettoniche, cimiteri (302)",
+                "Ordine pubblico, disturbo della quiete (302)",
+                "Parchi e verde pubblico (302)",
+                "Servizi del comune (302)",
+                "Sicurezza, degrado urbano e sociale (302)",
+                "Strade, marciapiedi, segnaletica e viabilità (302)"
+            ],
+        ];
+    }
+}
+?>
+
+@volt('ticket_list')
 <div class="py-4 space-y-12 text-gray-950">
     <!-- Breadcrumbs -->
     <section class="max-w-screen-lg px-4 mx-auto">
@@ -137,3 +158,4 @@ $categories = ["Acqua, allagamenti, problemi fognari (21)",
         </section>
     </div>
 </div>
+ @endvolt()

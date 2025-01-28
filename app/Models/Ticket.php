@@ -149,6 +149,12 @@ class Ticket extends BaseModel implements HasMedia
         // 'estimationProgress',
     ];
 
+    protected $casts = [
+        'status' => TicketStatusEnum::class,
+        'priority' => TicketPriorityEnum::class,
+        'type' => TicketTypeEnum::class,
+    ];
+
     public function casts(): array
     {
         return [

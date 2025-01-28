@@ -9,5 +9,9 @@
     array (
       'label' => 'reason',
     ),
+    'changeStatus' => 
+    array (
+      'label' => 'changeStatus',
+    ),
   ),
 );

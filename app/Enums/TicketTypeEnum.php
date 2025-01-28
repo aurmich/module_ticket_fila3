@@ -18,7 +18,7 @@ Tipologie di Riparazioni Segnalabili
 Manutenzione Stradale
 
 Descrizione: Segnalazioni relative a buche, crepe, segnaletica stradale danneggiata, ecc.
-Esempio: Buche sull’asfalto, segnaletica stradale non visibile.
+Esempio: Buche sull'asfalto, segnaletica stradale non visibile.
 Colore: #ff9800 (Orange)
 Icona: 🛤️ (Heroicons: Road)
 ------
@@ -99,6 +99,11 @@ enum TicketTypeEnum: string implements HasColor, HasIcon, HasLabel
     case PUBLIC_TRANSPORT = 'public_transport';
     case URBAN_FURNITURE = 'urban_furniture';
     case PUBLIC_SAFETY = 'public_safety';
+    case COMPLAINT = 'complaint';
+    case SUGGESTION = 'suggestion';
+    case REPORT = 'report';
+    case REQUEST = 'request';
+    case OTHER = 'other';
 
     public function getLabel(): string
     {
@@ -113,6 +118,11 @@ enum TicketTypeEnum: string implements HasColor, HasIcon, HasLabel
             self::PUBLIC_TRANSPORT => 'Trasporti Pubblici',
             self::URBAN_FURNITURE => 'Arredo Urbano',
             self::PUBLIC_SAFETY => 'Sicurezza Pubblica',
+            self::COMPLAINT => 'Complaint',
+            self::SUGGESTION => 'Suggestion',
+            self::REPORT => 'Report',
+            self::REQUEST => 'Request',
+            self::OTHER => 'Other',
         };
     }
 
@@ -131,6 +141,11 @@ enum TicketTypeEnum: string implements HasColor, HasIcon, HasLabel
             self::PUBLIC_TRANSPORT => '#9c27b0',
             self::URBAN_FURNITURE => '#00bcd4',
             self::PUBLIC_SAFETY => '#ff5722',
+            self::COMPLAINT => 'danger',
+            self::SUGGESTION => 'success',
+            self::REPORT => 'warning',
+            self::REQUEST => 'info',
+            self::OTHER => 'gray',
         };
     }
 
@@ -147,6 +162,37 @@ enum TicketTypeEnum: string implements HasColor, HasIcon, HasLabel
             self::PUBLIC_TRANSPORT => 'fas-bus',
             self::URBAN_FURNITURE => 'fas-couch',
             self::PUBLIC_SAFETY => 'heroicon-o-shield-check',
+            self::COMPLAINT => 'heroicon-o-exclamation-triangle',
+            self::SUGGESTION => 'heroicon-o-light-bulb',
+            self::REPORT => 'heroicon-o-document-report',
+            self::REQUEST => 'heroicon-o-document',
+            self::OTHER => 'heroicon-o-question-mark-circle',
         };
+    }
+
+    public function label(): string
+    {
+        return match($this) {
+            self::ROAD_MAINTENANCE => trans('fixcity::ticket.fields.type.options.road_maintenance'),
+            self::PUBLIC_LIGHTING => trans('fixcity::ticket.fields.type.options.public_lighting'),
+            self::WASTE_COLLECTION => trans('fixcity::ticket.fields.type.options.waste_collection'),
+            self::PARKS_AND_GARDENS => trans('fixcity::ticket.fields.type.options.parks_and_gardens'),
+            self::SEWAGE_AND_DRAINAGE => trans('fixcity::ticket.fields.type.options.sewage_and_drainage'),
+            self::PUBLIC_BUILDINGS => trans('fixcity::ticket.fields.type.options.public_buildings'),
+            self::ENVIRONMENTAL_REPORTS => trans('fixcity::ticket.fields.type.options.environmental_reports'),
+            self::PUBLIC_TRANSPORT => trans('fixcity::ticket.fields.type.options.public_transport'),
+            self::URBAN_FURNITURE => trans('fixcity::ticket.fields.type.options.urban_furniture'),
+            self::PUBLIC_SAFETY => trans('fixcity::ticket.fields.type.options.public_safety'),
+            self::COMPLAINT => trans('fixcity::ticket.fields.type.options.complaint'),
+            self::SUGGESTION => trans('fixcity::ticket.fields.type.options.suggestion'),
+            self::REPORT => trans('fixcity::ticket.fields.type.options.report'),
+            self::REQUEST => trans('fixcity::ticket.fields.type.options.request'),
+            self::OTHER => trans('fixcity::ticket.fields.type.options.other'),
+        };
+    }
+
+    public static function default(): static
+    {
+        return self::OTHER;
     }
 }
