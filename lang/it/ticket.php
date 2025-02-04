@@ -1,5 +1,4 @@
-<?php 
-return array (
+<?php return array (
   'navigation' => 
   array (
     'name' => 'Ticket',
@@ -79,6 +78,10 @@ return array (
     'title' => 
     array (
       'label' => 'title',
+    ),
+    'accept_terms' => 
+    array (
+      'label' => 'accept_terms',
     ),
   ),
   'actions' => 
@@ -4430,7 +4433,7 @@ return array (
   array (
     'label' => 'Contenuto',
     'placeholder' => 'Dettagli',
-    'helper_text' => 'Inserire al massimo 200 caratteri'
+    'helper_text' => 'Inserire al massimo 200 caratteri',
   ),
   'edit_status' => 
   array (
@@ -5847,4 +5850,15 @@ Puoi collegarti per verificare il tuo via OTP o semplicamente cliccare sul link 
       'label' => 'ticket.plural.model',
     ),
   ),
-);
+  'steps' => 
+  array (
+    'Step 2' => 
+    array (
+      'label' => 'Step 2',
+    ),
+    'Step 1' => 
+    array (
+      'label' => 'Step 1',
+    ),
+  ),
+);
