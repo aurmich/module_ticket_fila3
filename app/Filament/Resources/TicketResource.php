@@ -45,6 +45,28 @@ class TicketResource extends XotBaseResource
         return [
             Section::make()
                 ->schema([
+                    TextInput::make('name')
+                        ->hiddenLabel()
+                        ->placeholder(__('ticket::ticket.title.placeholder') . '*')
+                        ->columnSpanFull() // Occupa tutta la larghezza disponibile
+                        ->required()
+                        ->maxLength(255)
+                        ->afterStateUpdated(function (Set $set, Get $get, string $state) {
+                            if ($get('slug')) {
+                                return;
+                            }
+                            $set('slug', Str::slug($state));
+                        })
+                        ->extraAttributes([
+                            'style' => ''
+                        ]),
+                    // Slug
+                    TextInput::make('slug')
+                        ->columnSpanFull() // Anche lo slug occupa tutta la larghezza disponibile
+                        ->required()
+                        ->hidden()
+                        ->extraAttributes(['class' => 'max-w-full', 'style' => 'padding: 0; margin: 0;']), // Rimozione del padding e margini
+
                     Select::make('type')
                         ->hiddenLabel()
                         ->placeholder(__('ticket::ticket.type.placeholder') . '*')
@@ -66,6 +88,25 @@ class TicketResource extends XotBaseResource
                         ->rows(2)
                         ->cols(10)
                         ->helperText(__('ticket::ticket.content.helper_text')),
+
+                    TextInput::make('latitude')
+                        ->hidden(
+                            function () {
+                                Assert::notNull(Filament::auth()->user());
+                                Assert::notNull(Filament::auth()->user()->profile);
+                                return Filament::auth()->user()->profile->isSuperAdmin() ? false : true;
+                            }
+                        )
+                        ->readOnly(),
+                    TextInput::make('longitude')
+                        ->hidden(
+                            function () {
+                                Assert::notNull(Filament::auth()->user());
+                                Assert::notNull(Filament::auth()->user()->profile);
+                                return Filament::auth()->user()->profile->isSuperAdmin() ? false : true;
+                            }
+                        )
+                        ->readOnly(),
 
                     // Map
                     Map::make('location')
