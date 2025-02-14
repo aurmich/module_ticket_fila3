@@ -2,31 +2,131 @@
 
 use Livewire\Volt\Component;
 use Livewire\WithPagination;
+use Modules\Ticket\Models\Ticket;
+use Modules\Ticket\Enums\TicketTypeEnum;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 
 new class extends Component
 {
     use WithPagination;
 
     public $search = '';
-    public $selectedCategory = '';
+    public $selectedCategories = [];
     public $selectedStatus = '';
+    public $resolvedTicketsCount;
+    public $perPage = 3;
+    public $expandedTickets = [];
+    public $filteredCount = 0;
+
+    public function toggleTicket($ticketId)
+    {
+        if (in_array($ticketId, $this->expandedTickets)) {
+            $this->expandedTickets = array_diff($this->expandedTickets, [$ticketId]);
+        } else {
+            $this->expandedTickets[] = $ticketId;
+        }
+    }
+
+    public function mount()
+    {
+        $this->resolvedTicketsCount = Ticket::query()
+            ->where('created_at', '>=', Carbon::now()->subMonths(12))
+            ->count();
+    }
+
+    public function loadMore()
+    {
+        $this->perPage += 3;
+    }
+
+    public function updatedSelectedCategories($value)
+    {
+        Log::error('Categories updated', ['value' => $this->selectedCategories]);
+        $this->dispatch('categoryFilterUpdated')
+            ->to(\Modules\Ticket\Filament\Widgets\TicketsMapWidget::class);
+    }
+
+    public function clearCategories()
+    {
+        $this->selectedCategories = [];
+        $this->dispatch('categoryFilterUpdated')
+            ->to(\Modules\Ticket\Filament\Widgets\TicketsMapWidget::class);
+    }
+
+    private function getAddress($lat, $lon): string
+    {
+        Log::error('Getting address for coordinates', ['lat' => $lat, 'lon' => $lon]);
+
+        try {
+            $response = Http::withHeaders([
+                'User-Agent' => 'FixCity/1.0 (your@email.com)', // Replace with your actual app name and contact email
+                'Accept-Language' => 'it' // For Italian results
+            ])->get('https://nominatim.openstreetmap.org/reverse', [
+                'format' => 'json',
+                'lat' => $lat,
+                'lon' => $lon,
+                'zoom' => 18,
+                'addressdetails' => 1,
+            ]);
+
+            Log::error('API Response', ['response' => $response->json()]);
+
+            if ($response->successful()) {
+                $data = $response->json();
+                $address = $data['display_name'] ?? 'Indirizzo non trovato';
+                Log::error('Address found', ['address' => $address]);
+                return $address;
+            }
+        } catch (\Exception $e) {
+            Log::error('Error getting address', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'lat' => $lat,
+                'lon' => $lon
+            ]);
+        }
+
+        Log::error('Returning default address');
+        return 'Indirizzo non trovato';
+    }
 
     public function with(): array
     {
+        $categories = collect(TicketTypeEnum::cases())->map(function ($type) {
+            $count = Ticket::where('type', $type->value)
+                ->where('created_at', '>=', Carbon::now()->subMonths(12))
+                ->count();
+
+            return [
+                'label' => $type->getLabel(),
+                'value' => $type->value,
+                'count' => $count
+            ];
+        });
+
+        $query = Ticket::query()
+            ->select('id', 'name', 'type', 'content', 'created_at', 'latitude', 'longitude')
+            ->with('media')
+            ->latest();
+
+        if (count($this->selectedCategories) > 0) {
+            $query->whereIn('type', $this->selectedCategories);
+        }
+
+        $this->filteredCount = $query->count();
+
+        $tickets = $query->take($this->perPage)->get();
+
+        $hasMorePages = Ticket::count() > $this->perPage;
+
         return [
-            'categories' => [
-                "Acqua, allagamenti, problemi fognari (22)",
-                "Ambiente, inquinamento, protezione ambientale (14)",
-                "Arredo urbano (7)",
-                "Disinfestazione, derattizazione, animali randagi (208)",
-                "Igiene urbana, rifiuti, pulizia e decoro (321)",
-                "Manutenzione immobili, edifici pubblici, scuole, barriere architettoniche, cimiteri (302)",
-                "Ordine pubblico, disturbo della quiete (302)",
-                "Parchi e verde pubblico (302)",
-                "Servizi del comune (302)",
-                "Sicurezza, degrado urbano e sociale (302)",
-                "Strade, marciapiedi, segnaletica e viabilità (302)"
-            ],
+            'categories' => $categories,
+            'tickets' => $tickets,
+            'hasMorePages' => $hasMorePages,
+            'filteredCount' => $this->filteredCount
         ];
     }
 }
@@ -46,7 +146,7 @@ new class extends Component
     <!-- Title -->
     <section class="max-w-screen-lg px-4 mx-auto">
         <h1 class="mb-2 text-3xl font-bold lg:text-5xl">Elenco segnalazioni</h1>
-        <p>Negli ultimi 12 mesi sono state risolte 73 segnalazioni.</p>
+        <p>Negli ultimi 12 mesi sono state risolte {{ $resolvedTicketsCount }} segnalazioni.</p>
     </section>
     <!-- Divider -->
     <div class="max-w-screen-xl px-4 mx-auto">
@@ -59,56 +159,120 @@ new class extends Component
                 <h4 class="font-bold text-emerald-800">CATEGORIA</h4>
                 <div>
                     @foreach($categories as $category)
-                    <div class=" form-control">
+                    <div class="form-control">
                         <label class="cursor-pointer label !justify-start space-x-4">
-                            <input type="checkbox" class="checkbox checkbox-sm" />
-                            <span class="label-text text-gray-950">{{ $category }}</span>
+                            <input
+                                type="checkbox"
+                                class="checkbox checkbox-sm"
+                                wire:model.live="selectedCategories"
+                                value="{{ $category['value'] }}" />
+                            <span class="label-text text-gray-950">{{ $category['label'] }} ({{ $category['count'] }})</span>
                         </label>
                     </div>
                     @endforeach
+
+                    @if(count($selectedCategories) > 0)
+                    <div class="mt-2">
+                        <button
+                            wire:click="clearCategories"
+                            class="text-sm text-emerald-600 hover:text-emerald-800">
+                            Mostra tutte le categorie
+                        </button>
+                    </div>
+                    @endif
                 </div>
             </div>
             <div class="col-span-2 space-y-4">
                 <div class="flex justify-between text-sm">
-                    <div>645 Risultati</div>
+                    <div>{{ $filteredCount }} Risultati</div>
                     <div>
-                        <a class="text-emerald-800" href="">Rimuovi tutti i filtri</a>
+                        @if(count($selectedCategories) > 0)
+                        <button
+                            wire:click="clearCategories"
+                            class="text-emerald-800">
+                            Rimuovi tutti i filtri
+                        </button>
+                        @endif
                     </div>
                 </div>
                 <hr />
                 <div role="tablist" class="grid-cols-2 tabs tabs-bordered">
                     <input type="radio" name="my_tabs_1" role="tab" class="text-lg text-gray-950 border-0 rounded-none tab focus:!bg-transparent hover:!bg-transparent checked:bg-transparent focus:ring-0 focus:!border-emerald-800" aria-label="Mappa" checked="checked" />
                     <div role="tabpanel" class="py-8 space-y-6 tab-content">
-                        <img src="https://italia.github.io/design-comuni-pagine-statiche/assets/images/map-placeholder.svg" alt="" class="block w-full">
+                        @livewire(\Modules\Ticket\Filament\Widgets\TicketsMapWidget::class, [
+                        'categoryFilter' => $selectedCategories
+                        ], key('map-' . implode('-', $selectedCategories)))
                     </div>
                     <input type="radio" name="my_tabs_1" role="tab" class="text-lg text-gray-950 border-0 rounded-none tab focus:!bg-transparent hover:!bg-transparent checked:bg-transparent focus:ring-0 focus:!border-emerald-800" aria-label="Elenco" />
                     <div role="tabpanel" class="py-8 space-y-4 tab-content">
-                        @foreach(['a', 'b', 'c'] as $item)
+                        @foreach($tickets as $ticket)
                         <x-filament::section>
                             <div class="space-y-4">
-                                <h3 class="text-xl font-bold">Buca in via Solferino</h3>
+                                <h3 class="text-xl font-bold">{{ $ticket->name }}</h3>
                                 <div class="space-y-2">
                                     <p>Tipologia di segnalazione</p>
-                                    <p><strong>Verde pubblico e arredo urbano</strong></p>
+                                    <p><strong>{{ $ticket->type->getLabel() }}</strong></p>
                                 </div>
+                                @if(in_array($ticket->id, $expandedTickets))
+                                <div class="space-y-4">
+                                    <!-- Location Information -->
+
+                                    <div class="space-y-2">
+                                        <p><strong>Indirizzo:</strong><br>
+                                            @if($ticket->latitude && $ticket->longitude)
+                                            {{ $ticket->address }}
+                                            @endif
+                                        </p>
+                                    </div>
+
+                                    <!-- Rest of your expanded ticket content -->
+                                    <div class="space-y-2">
+                                        <p class="font-medium">Dettaglio</p>
+                                        <p>{{ $ticket->content }}</p>
+                                    </div>
+
+
+                                    <div class="space-y-2">
+                                        <p class="font-medium">Immagini</p>
+                                        @if($ticket->media->count() > 0)
+                                        <div class="grid grid-cols-2 gap-4 md:grid-cols-3">
+                                            @foreach($ticket->media as $media)
+                                            <div class="relative aspect-square">
+                                                <img
+                                                    src="{{ $media->getUrl() }}"
+                                                    alt="Immagine segnalazione"
+                                                    class="object-cover w-full h-full rounded-lg" />
+                                            </div>
+                                            @endforeach
+                                        </div>
+                                        @endif
+                                    </div>
+                                </div>
+                                @endif
+
                                 <hr class="border-gray-300" />
-                                <a href="" class="btn btn-neutral">
-                                    <div class="text-white">Mostra tutto</div>
-                                    <x-heroicon-o-chevron-down class="size-4" />
-                                </a>
+                                <button wire:click="toggleTicket({{ $ticket->id }})" class="btn btn-neutral">
+                                    <div class="text-white">{{ in_array($ticket->id, $expandedTickets) ? 'Mostra meno' : 'Mostra tutto' }}</div>
+                                    <x-bi-arrow-{{ in_array($ticket->id, $expandedTickets) ? 'up' : 'down' }}-circle-fill class="size-4" />
+                                </button>
                             </div>
                         </x-filament::section>
                         @endforeach
+
+                        @if($hasMorePages)
                         <div class="py-4 text-center">
-                            <button class="btn btn-outline text-emerald-600 btn-lg">Carica altre segnalazioni</button>
+                            <button wire:click="loadMore" class="btn btn-outline text-emerald-600 btn-lg">
+                                Carica altre segnalazioni
+                            </button>
                         </div>
+                        @endif
                     </div>
                 </div>
                 <div class="space-y-2">
                     <h2 class="text-3xl font-bold lg:text-4xl">Fai una segnalazione</h2>
                     <p>Se vuoi aggiungere una segnalazione, puoi farlo dopo esserti autenticato con le tue credenziali SPID o CIE.</p>
                     <br />
-                    <a href="" class="text-white btn btn-neutral">Segnala disservizio</a>
+                    <a href="{{ route('ticket.create', ['lang'=>$lang]) }}" class="text-white btn btn-neutral">Segnala disservizio</a>
                 </div>
             </div>
         </div>
@@ -158,4 +322,4 @@ new class extends Component
         </section>
     </div>
 </div>
- @endvolt()
+@endvolt
