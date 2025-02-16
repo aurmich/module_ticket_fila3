@@ -32,5 +32,37 @@
     array (
       'label' => 'privacy_notice',
     ),
+    'images' => 
+    array (
+      'label' => 'images',
+    ),
+    'location' => 
+    array (
+      'label' => 'location',
+    ),
+    'longitude' => 
+    array (
+      'label' => 'longitude',
+    ),
+    'latitude' => 
+    array (
+      'label' => 'latitude',
+    ),
+    'content' => 
+    array (
+      'label' => 'content',
+    ),
+    'priority' => 
+    array (
+      'label' => 'priority',
+    ),
+    'slug' => 
+    array (
+      'label' => 'slug',
+    ),
+    'type' => 
+    array (
+      'label' => 'type',
+    ),
   ),
 );

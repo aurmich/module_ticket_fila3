@@ -1,5 +1,4 @@
 <?php
-
 /**
  * ---.
  */
@@ -8,29 +7,23 @@ declare(strict_types=1);
 
 namespace Modules\Ticket\Filament\Resources;
 
-use Dotswan\MapPicker\Fields\Map;
-use Filament\Facades\Filament;
 use Filament\Forms;
-use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
-use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\Textarea;
-use Filament\Forms\Form;
 use Filament\Forms\Get;
 use Filament\Forms\Set;
+use Filament\Forms\Form;
 use Filament\Pages\Page;
-use Filament\Pages\SubNavigationPosition;
 use Illuminate\Support\Str;
-use Modules\Ticket\Enums\TicketPriorityEnum;
-use Modules\Ticket\Enums\TicketTypeEnum;
-use Modules\Ticket\Filament\Resources\TicketResource\Pages;
+use Webmozart\Assert\Assert;
+use Filament\Facades\Filament;
+use Dotswan\MapPicker\Fields\Map;
 use Modules\Ticket\Models\Ticket;
+use Modules\Ticket\Enums\TicketTypeEnum;
+use Filament\Pages\SubNavigationPosition;
+use Modules\Ticket\Enums\TicketPriorityEnum;
 use Modules\Ticket\Rules\FilterCoordinatesInRadius;
 use Modules\Xot\Filament\Resources\XotBaseResource;
-use Webmozart\Assert\Assert;
-use Filament\Forms\Components\Wizard;
-use Filament\Forms\Components\Select;
-use Filament\Forms\Components\Section;
-use Filament\Forms\Components\Placeholder;
+use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
+use Modules\Ticket\Filament\Resources\TicketResource\Pages;
 
 class TicketResource extends XotBaseResource
 {
@@ -43,9 +36,10 @@ class TicketResource extends XotBaseResource
     public static function getFormSchema(): array
     {
         return [
-            Section::make()
+            Forms\Components\Section::make()
                 ->schema([
-                    TextInput::make('name')
+                    // Ticket Name
+                    Forms\Components\TextInput::make('name')
                         ->hiddenLabel()
                         ->placeholder(__('ticket::ticket.title.placeholder') . '*')
                         ->columnSpanFull() // Occupa tutta la larghezza disponibile
@@ -60,21 +54,24 @@ class TicketResource extends XotBaseResource
                         ->extraAttributes([
                             'style' => ''
                         ]),
+
                     // Slug
-                    TextInput::make('slug')
+                    Forms\Components\TextInput::make('slug')
                         ->columnSpanFull() // Anche lo slug occupa tutta la larghezza disponibile
                         ->required()
                         ->hidden()
                         ->extraAttributes(['class' => 'max-w-full', 'style' => 'padding: 0; margin: 0;']), // Rimozione del padding e margini
 
-                    Select::make('type')
+                    // Ticket Type
+                    Forms\Components\Select::make('type')
                         ->hiddenLabel()
                         ->placeholder(__('ticket::ticket.type.placeholder') . '*')
                         ->searchable()
                         ->options(TicketTypeEnum::class)
                         ->columnSpanFull(),
 
-                    Select::make('priority')
+                    // Ticket Priority
+                    Forms\Components\Select::make('priority')
                         ->hiddenLabel()
                         ->placeholder(__('ticket::ticket.priorities.label'))
                         ->searchable()
@@ -82,57 +79,106 @@ class TicketResource extends XotBaseResource
                         ->default(TicketPriorityEnum::default())
                         ->columnSpanFull(),
 
-                    Textarea::make('content')
+                    // Ticket Content (RichEditor)
+                    // Forms\Components\RichEditor::make('content')
+                    //     ->label(__('ticket::ticket.content.label'))
+                    //     ->required()
+                    //     ->columnSpanFull()
+                    //     ->extraAttributes(['class' => 'max-w-full', 'style' => 'padding: 0; margin: 0;']), // Rimozione del padding e margini
+
+
+                    Forms\Components\Textarea::make('content')
                         ->hiddenLabel()
                         ->placeholder(__('ticket::ticket.content.placeholder') . '**')
                         ->rows(2)
                         ->cols(10)
                         ->helperText(__('ticket::ticket.content.helper_text')),
 
-                    TextInput::make('latitude')
+
+                    // Hidden Latitude and Longitude
+                    Forms\Components\TextInput::make('latitude')
                         ->hidden(
                             function () {
                                 Assert::notNull(Filament::auth()->user());
                                 Assert::notNull(Filament::auth()->user()->profile);
+
                                 return Filament::auth()->user()->profile->isSuperAdmin() ? false : true;
                             }
                         )
                         ->readOnly(),
-                    TextInput::make('longitude')
+                    Forms\Components\TextInput::make('longitude')
                         ->hidden(
                             function () {
                                 Assert::notNull(Filament::auth()->user());
                                 Assert::notNull(Filament::auth()->user()->profile);
+
                                 return Filament::auth()->user()->profile->isSuperAdmin() ? false : true;
                             }
                         )
                         ->readOnly(),
 
-                    // Map
+                    // Map Section
                     Map::make('location')
                         ->label(__('ticket::ticket.your-location'))
-                        ->columnSpanFull()
-                        ->default(['lat' => 40.4168, 'lng' => -3.7038])
-                        ->afterStateUpdated(fn(Set $set, ?array $state) => $state ? $set('latitude', $state['lat']) && $set('longitude', $state['lng']) : null)
+                        ->columnSpanFull() // Occupare l'intera larghezza disponibile
+                        ->default([
+                            'lat' => 40.4168,
+                            'lng' => -3.7038,
+                        ])
+                        ->afterStateUpdated(function (Set $set, ?array $state): void {
+                            if (is_array($state)) {
+                                $set('latitude', $state['lat']);
+                                $set('longitude', $state['lng']);
+                            }
+                        })
+                        ->afterStateHydrated(function ($state, $record, Set $set): void {
+                            $set('location', ['lat' => $record?->latitude, 'lng' => $record?->longitude]);
+                        })
+                        ->rules([new FilterCoordinatesInRadius()])
                         ->liveLocation()
+                        ->showMarker(false) // https://github.com/dotswan/filament-map-picker/pull/51
+                        ->markerColor('#22c55eff')
                         ->showFullscreenControl()
                         ->showZoomControl()
                         ->draggable()
                         ->tilesUrl('https://tile.openstreetmap.de/{z}/{x}/{y}.png')
                         ->zoom(15)
                         ->detectRetina()
-                        ->showMyLocationButton(),
+                        ->showMyLocationButton()
+                        // ->extraAttributes(['class' => 'max-w-full', 'style' => 'min-height: 300px; padding: 0; margin: 0;'])
+                        ,
+
+                    // Image Upload
+                    // SpatieMediaLibraryFileUpload::make('images')
+                    //     ->label(__('ticket::ticket.insert-images'))
+                    //     ->collection('ticket')
+                    //     ->directory('ticket')
+                    //     ->disk('uploads')
+                    //     ->responsiveImages()
+                    //     ->multiple()
+                    //     ->required()
+                    //     ->columnSpanFull()
+                    //     // ->extraAttributes(['class' => 'max-w-full', 'style' => 'padding: 0; margin: 0;'])
+                    //     ,
+
 
                     SpatieMediaLibraryFileUpload::make('images')
                         ->label(__('ticket::ticket.insert-images'))
                         ->collection('ticket')
+                        ->directory('ticket')
                         ->disk('uploads')
+                        ->responsiveImages()
                         ->multiple()
                         ->required()
-                        ->columnSpanFull(),
+                        ->maxFiles(5) // Limita il numero di file caricabili
+                        ->maxSize(10240) // Imposta un limite massimo di 10MB per file
+                        ->acceptedFileTypes(['image/png', 'image/jpeg', 'image/jpg']) // Accetta solo immagini
+                        ->columnSpanFull()
+                        ,
+
                 ])
-                ->columnSpanFull()
-                ->extraAttributes(['class' => 'w-full max-w-full mx-auto']),
+                ->columns(1) // Imposta il layout su una colonna
+                ->extraAttributes(['class' => 'w-full max-w-full mx-auto', 'style' => 'padding: 0; margin: 0; !important;']), // Rimozione padding e margine
         ];
     }
 
@@ -144,7 +190,8 @@ class TicketResource extends XotBaseResource
 
     public static function getRelations(): array
     {
-        return [];
+        return [
+        ];
     }
 
     public static function getPages(): array

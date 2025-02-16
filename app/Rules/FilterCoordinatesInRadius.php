@@ -4,7 +4,7 @@ namespace Modules\Ticket\Rules;
 
 use Closure;
 use Illuminate\Contracts\Validation\ValidationRule;
-use Modules\Geo\Actions\FilterCoordinatesInRadius as CoordinatesFilter;
+use Modules\Geo\Actions\FilterCoordinatesInRadiusAction as CoordinatesFilter;
 use Modules\Ticket\Models\Ticket;
 use Webmozart\Assert\Assert;
 

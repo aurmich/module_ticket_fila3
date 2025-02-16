@@ -113,8 +113,20 @@ class CreateTicketWidget extends BaseWidget implements HasForms
 
     public function create(): void
     {
-        $ticket = Ticket::create($this->form->getState());
+        // Ottieni i dati dal form
+        $data = $this->form->getState();
+    
+        // Crea il ticket senza le immagini
+        $ticket = Ticket::create($data);
+    
+        // Salva le immagini usando saveRelationships()
+        $this->form->model($ticket)->saveRelationships();
+    
+        // Dispatch dell'evento
         TicketCreatedEvent::dispatch($ticket);
+    
+        // Redirect alla pagina principale
         redirect('/');
     }
+    
 }
