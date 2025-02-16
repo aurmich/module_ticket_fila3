@@ -239,7 +239,7 @@ new class extends Component
                                             @foreach($ticket->media as $media)
                                             <div class="relative aspect-square">
                                                 <img
-                                                    src="{{ $media->getUrl() }}"
+                                                    src="{{ asset($media->getUrl()) }}"
                                                     alt="Immagine segnalazione"
                                                     class="object-cover w-full h-full rounded-lg" />
                                             </div>
