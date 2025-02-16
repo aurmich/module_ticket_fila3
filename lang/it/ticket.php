@@ -8,7 +8,7 @@
       'name' => 'Management',
     ),
     'label' => 'ticket.navigation',
-    'sort' => 18,
+    'sort' => 36,
   ),
   'fields' => 
   array (
@@ -99,6 +99,26 @@
     'resetFilters' => 
     array (
       'label' => 'resetFilters',
+    ),
+    'openFilters' => 
+    array (
+      'label' => 'openFilters',
+    ),
+    'unit' => 
+    array (
+      'label' => 'unit',
+    ),
+    'radius' => 
+    array (
+      'label' => 'radius',
+    ),
+    'geocomplete' => 
+    array (
+      'label' => 'geocomplete',
+    ),
+    'create' => 
+    array (
+      'label' => 'create',
     ),
   ),
   'actions' => 

@@ -126,7 +126,7 @@ class ListTickets extends XotBaseListRecords
                     Assert::notNull(Filament::auth()->user());
                     Assert::notNull(Filament::auth()->user()->profile);
 
-                    return Filament::auth()->user()->profile->isSuperAdmin() ? false : true;
+                    return Filament::auth()->user()->profile->isSuperAdmin();
                 }),
         ];
     }
