@@ -8,6 +8,7 @@
       'name' => 'Management',
     ),
     'label' => 'ticket.navigation',
+    'sort' => 18,
   ),
   'fields' => 
   array (
@@ -82,6 +83,22 @@
     'accept_terms' => 
     array (
       'label' => 'accept_terms',
+    ),
+    'applyFilters' => 
+    array (
+      'label' => 'applyFilters',
+    ),
+    'toggleColumns' => 
+    array (
+      'label' => 'toggleColumns',
+    ),
+    'reorderRecords' => 
+    array (
+      'label' => 'reorderRecords',
+    ),
+    'resetFilters' => 
+    array (
+      'label' => 'resetFilters',
     ),
   ),
   'actions' => 
