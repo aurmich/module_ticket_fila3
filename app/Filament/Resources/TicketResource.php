@@ -118,6 +118,7 @@ class TicketResource extends XotBaseResource
                         ->readOnly(),
 
                     // Map Section
+                    // NOTA BENE, ASSICURATI DI ABILITARE LA LOCALIZZAZIONE NEL BROWSER
                     Map::make('location')
                         ->label(__('ticket::ticket.your-location'))
                         ->columnSpanFull() // Occupare l'intera larghezza disponibile
