@@ -13,12 +13,12 @@ class ViewTicket extends ViewRecord
 {
     protected static string $resource = TicketResource::class;
 
-    protected function getHeaderActions(): array
-    {
-        return [
-            Actions\DeleteAction::make(),
-        ];
-    }
+    // protected function getHeaderActions(): array
+    // {
+    //     return [
+    //         Actions\DeleteAction::make(),
+    //     ];
+    // }
 
     // public static function getRecordSubNavigation(Page $page): array
     // {
