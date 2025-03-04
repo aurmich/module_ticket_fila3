@@ -108,7 +108,7 @@ new class extends Component
         });
 
         $query = Ticket::query()
-            ->select('id', 'name', 'type', 'content', 'created_at', 'latitude', 'longitude')
+            ->select('id', 'name', 'slug', 'type', 'content', 'created_at', 'latitude', 'longitude')
             ->with('media')
             ->latest();
 
@@ -208,7 +208,7 @@ new class extends Component
                         @foreach($tickets as $ticket)
                         <x-filament::section>
                             <div class="space-y-4">
-                                <h3 class="text-xl font-bold">{{ $ticket->name }}</h3>
+                                <a target="_blank" href="{{ route('ticket.view', ['slug' => $ticket->slug]) }}"><h3 class="text-xl font-bold">{{ $ticket->name }}</h3></a>
                                 <div class="space-y-2">
                                     <p>Tipologia di segnalazione</p>
                                     <p><strong>{{ $ticket->type->getLabel() }}</strong></p>
