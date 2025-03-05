@@ -17,6 +17,9 @@ use Illuminate\Support\HtmlString;
 
 class TicketsMapWidget extends MapWidget
 {
+    public $userLatitude;
+    public $userLongitude;
+
     protected static ?string $markerAction = 'markerAction';
 
     public function markerAction(): Action
@@ -55,6 +58,11 @@ class TicketsMapWidget extends MapWidget
             ->modalSubmitAction(false);
     }
 
+    protected function getZoom(): int
+    {
+        return 15;
+    }
+
     #[Reactive]
     public array $categoryFilter = [];
 
@@ -64,7 +72,7 @@ class TicketsMapWidget extends MapWidget
 
     protected static ?bool $clustering = true;
 
-    protected static ?bool $fitToBounds = true;
+    protected static ?bool $fitToBounds = false;
 
     protected static ?string $mapId = 'incidents';
 
@@ -74,10 +82,12 @@ class TicketsMapWidget extends MapWidget
     {
         $config = json_decode(parent::getMapConfig(), true);
 
-        $config['center'] = [
-            'lat' => 34.730369,
-            'lng' => -86.586104,
-        ];
+        if ($this->userLatitude && $this->userLongitude) {
+            $config['center'] = [
+                'lat' => $this->userLatitude,
+                'lng' => $this->userLongitude,
+            ];
+        }
 
         return json_encode($config);
     }
@@ -89,8 +99,6 @@ class TicketsMapWidget extends MapWidget
 
     protected function getData(): array
     {
-        Log::error('Getting map data with filters', ['categories' => $this->categoryFilter]);
-
         $query = Ticket::query();
 
         // Apply category filter if any categories are selected
@@ -106,12 +114,6 @@ class TicketsMapWidget extends MapWidget
         });
 
         $locations = $query->latest()->get();
-
-        Log::error('Filtered locations', [
-            'sql' => $query->toSql(),
-            'bindings' => $query->getBindings(),
-            'count' => $locations->count()
-        ]);
 
         $data = [];
 
@@ -157,12 +159,19 @@ class TicketsMapWidget extends MapWidget
     {
         return array_merge(parent::getListeners(), [
             'categoryFilterUpdated' => 'rerender',
+            'updateMapCenter' => 'updateMapCenter',
         ]);
+    }
+
+    public function updateMapCenter($latitude, $longitude)
+    {
+        $this->userLatitude = $latitude;
+        $this->userLongitude = $longitude;
+        $this->rerender();
     }
 
     public function mount()
     {
         parent::mount();
-        Log::error('Widget mounted with filters', ['categories' => $this->categoryFilter]);
     }
 }

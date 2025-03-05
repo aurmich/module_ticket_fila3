@@ -35,7 +35,18 @@ new class extends Component
         $this->resolvedTicketsCount = Ticket::query()
             ->where('created_at', '>=', Carbon::now()->subMonths(12))
             ->count();
+        $this->dispatch('get-user-location');
     }
+
+    public function setUserLocation($latitude, $longitude)
+    {
+        $this->userLatitude = $latitude;
+        $this->userLongitude = $longitude;
+
+        $this->dispatch('updateMapCenter', $latitude, $longitude)
+        ->to(\Modules\Ticket\Filament\Widgets\TicketsMapWidget::class);
+    }
+
 
     public function loadMore()
     {
@@ -211,7 +222,7 @@ new class extends Component
                                 <a target="_blank" href="{{ route('ticket.view', ['slug' => $ticket->slug]) }}"><h3 class="text-xl font-bold">{{ $ticket->name }}</h3></a>
                                 <div class="space-y-2">
                                     <p>Tipologia di segnalazione</p>
-                                    <p><strong>{{ $ticket->type->getLabel() }}</strong></p>
+                                    <p><strong>{{ $ticket->type?->getLabel() }}</strong></p>
                                 </div>
                                 @if(in_array($ticket->id, $expandedTickets))
                                 <div class="space-y-4">
@@ -322,4 +333,26 @@ new class extends Component
         </section>
     </div>
 </div>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    window.addEventListener('get-user-location', function () {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(function (position) {
+                window.dispatchEvent(new CustomEvent('set-user-location', {
+                    detail: {
+                        latitude: position.coords.latitude,
+                        longitude: position.coords.longitude
+                    }
+                }));
+            });
+        } else {
+            console.error('Geolocation is not supported by this browser.');
+        }
+    });
+
+    window.addEventListener('set-user-location', function (event) {
+        @this.call('setUserLocation', event.detail.latitude, event.detail.longitude);
+    });
+});
+</script>
 @endvolt

@@ -19,6 +19,7 @@ render(function (View $view, string $slug) {
         return view('pub_theme::404');
     }
 
+    $status=TicketStatusEnum::from($ticket->status);
     $medias = $ticket->getMedia('ticket');
 
     $address = 'N/A';
@@ -42,7 +43,8 @@ render(function (View $view, string $slug) {
         'ticket' => $ticket,
         'medias' => $medias,
         'address' => $address,
-        'user' => auth()->user()
+        'user' => auth()->user(),
+        'status' => $status
     ]);
 });
 
@@ -84,13 +86,19 @@ render(function (View $view, string $slug) {
 
                 <div class="mb-4">
                     <p class="font-semibold">Tipo di disservizio</p>
-                    <p class="text-gray-700">{{ $ticket->type->getLabel() ?? 'N/A' }}</p>
+                    <p class="text-gray-700">{{ $ticket->type?->getLabel() ?? 'N/A' }}</p>
                     <hr class="my-2 border-gray-300">
                 </div>
 
                 <div class="mb-4">
                     <p class="font-semibold">Titolo</p>
                     <p class="text-gray-700">{{ $ticket->name ?? 'N/A' }}</p>
+                    <hr class="my-2 border-gray-300">
+                </div>
+
+                <div class="mb-4">
+                    <p class="font-semibold">Stato</p>
+                    <p class="text-gray-700">{{ $status->getLabel() ?? 'N/A' }}</p>
                     <hr class="my-2 border-gray-300">
                 </div>
 
