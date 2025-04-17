@@ -1,0 +1,12 @@
+{
+    "name": "Ticket",
+    "alias": "ticket",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\Ticket\\Providers\\TicketServiceProvider",
+        "Modules\\Ticket\\Providers\\Filament\\AdminPanelProvider"
+    ],
+    "files": []
+}
